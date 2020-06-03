@@ -1,0 +1,117 @@
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression #for getting best linear regression
+from sklearn.metrics import r2_score
+def welcome():
+    print("welcome to salary prediction system");
+    print("press enter key to proceed");
+    input();
+def checkcsv():
+    csv_files=[]
+    cur_dir=os.getcwd();#to know current directory
+    content_list=os.listdir(cur_dir);#to extract all files of this directory
+    for x in content_list:
+        if x.split('.')[-1]=='csv':   #-1 means last string of the list
+                csv_files.append(x);
+    if(len(csv_files)==0):
+        return 'no csv file in the directory'
+    else:
+        return csv_files;
+
+def display_and_select_csv(csv_files):
+    i=0;
+    for file_name in csv_files:
+        print(i,'....',file_name);
+        i+=1
+    return csv_files[int(input("select the file and write file no"))];
+def graph(x_train,y_train,regressionObject,x_test,y_test,y_pred):
+    plt.scatter(x_train,y_train,color='red',label='tranning data');
+    plt.plot(x_train,regressionObject.predict(x_train),color='blue',label='best regrssion line');
+    plt.scatter(x_test,y_test,color='black',label='test data');
+    plt.scatter(x_test,y_pred,color='blue');
+    plt.title("salary vs Experience");
+    plt.xlabel("years of experience");
+    plt.ylabel('salary');
+    plt.legend();
+    plt.show();
+    
+def main():
+    welcome();
+    try:
+        csv_files=checkcsv()
+        if csv_files=='no csv file in the directory':
+            raise FileNotFoundError('no csv file in the directory');
+        csv_file=display_and_select_csv(csv_files);
+        print(csv_file,'is selected');
+        print("Reading csv file");
+        print("creating dataset");
+        dataset=pd.read_csv(csv_file);
+        print("data set created");
+        x=dataset.iloc[:,:-1].values
+        y=dataset.iloc[:,-1].values#to select last values
+        s=float(input("Enter test data size(between 0 and 1)"));
+        x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=s);
+        print("Model creation in progress");
+        regressionObject=LinearRegression();
+        regressionObject.fit(x_train,y_train);#for best regression line on graph which contain less error
+        print("Model is created");
+        print("press Enter key to predict test data in trained model");
+        #see difference between predict and actual data to tst accuracy
+        input();
+        y_pred=regressionObject.predict(x_test);
+        #evalution of machine learning model performance
+        i=0;
+        print(x_test,'  ...',y_test,'  ...',y_pred);
+        while i<len(x_test):
+            print(x_test[i],'...',y_test[i],'...',y_pred[i]);
+            i+=1;
+        print("press Enter key to see above result in graphical formet");
+        input();
+        graph(x_train,y_train,regressionObject,x_test,y_test,y_pred);
+        r2=r2_score(y_test,y_pred);
+        print("Our model is %2.2f%% accurate" %(r2*100));
+#teting for users input
+
+        print("Now you can predict salary of an employee using our model");
+        print("\n Enter experience in years of the candidate,sepereted by ,");
+        exp=[float(e) for e in input().split(',')];
+        ex=[]
+        for x in exp:
+            ex.append([x]);
+        experience=np.array(ex);
+        salaries=regressionObject.predict(experience);#from indide's equation
+
+        plt.scatter(experience,salaries,color='black');
+        plt.xlabel('years of experience');
+        plt.ylabel('salaries');
+        plt.show();
+
+        d=pd.DataFrame({'experience':exp,'salaries':salaries});
+        print(d);
+        
+        
+        
+        
+        
+        
+        
+        
+    except FileNotFoundError:
+        print("no csv file in the directory");
+        print("press ENTER key to exit");
+        input();
+        exit();
+              
+        
+        
+        
+        
+        
+
+
+if __name__=="__main__":#to start our programm from main function
+    main();
+    input();
